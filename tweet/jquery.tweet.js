@@ -15,6 +15,8 @@
 			auto_join_text_reply: "i replied to",	// [string]	auto tense for replies: "i replied to" @someone "with"
 			auto_join_text_url: "i was looking at",	// [string]	auto tense for urls: "i was looking at" http:...
 			loading_text: null,						// [string]	optional loading text, displayed while tweets load
+			tag: null,								// [string]	optional hashtag
+			target: null,							// [string]	optional link target -- "blank"
 			query: null								// [string]	optional search query
 		};
 	
@@ -97,12 +99,23 @@
 			if(typeof(s.username) == "string"){
 				s.username = [s.username];
 			}
+			if(typeof(s.prepend) == "string"){
+				s.prepend = [s.prepend];
+			}
+			var target = '';
+			if(s.target) {
+				target = ' target='+target;
+			}
 			var query = '';
 			if(s.query) {
 				query += 'q='+s.query;
 			}
+			if(s.tag) {
+				query += 'tag='+s.tag;
+			}
 			query += '&q=from:'+s.username.join('%20OR%20from:');
 			var url = 'http://search.twitter.com/search.json?&'+query+'&rpp='+s.count+'&callback=?';
+			console.log(url);
 			if (s.loading_text) $(this).append(loading);
 			$.getJSON(url, function(data){
 				if (s.loading_text) loading.remove();
@@ -127,21 +140,17 @@
 
 					var join_template = '<span class="tweet_join"> '+join_text+' </span>';
 					var join = ((s.join_text) ? join_template : ' ')
-					var avatar_template = '<a class="tweet_avatar" href="http://twitter.com/'+ item.from_user+'"><img src="'+item.profile_image_url+'" height="'+s.avatar_size+'" width="'+s.avatar_size+'" alt="'+item.from_user+'\'s avatar" title="'+item.from_user+'\'s avatar" border="0"/></a>';
+					var avatar_template = '<a'+target+' class="tweet_avatar" href="http://twitter.com/'+ item.from_user+'"><img src="'+item.profile_image_url+'" height="'+s.avatar_size+'" width="'+s.avatar_size+'" alt="'+item.from_user+'\'s avatar" title="'+item.from_user+'\'s avatar" border="0"/></a>';
 					var avatar = (s.avatar_size ? avatar_template : '')
-					var prepend = (s.username_prepend ? '<a href="http://twitter.com/'+item.from_user+'/statuses/'+item.id+'" title="view tweet on twitter">'+item.from_user+'</a>' : '');
 
-					if(typeof(s.prepend) == "string"){
-						s.prepend = [s.prepend];
-					}
 					var prepend = '';
 					jQuery.each(s.prepend, function(i, val) {
 						switch(val) {
 							case 'date':
-								prepend = prepend + '<a class="tweet_date" href="http://twitter.com/'+item.from_user+'/statuses/'+item.id+'" title="view tweet on twitter">'+relative_time(item.created_at)+'</a>';
+								prepend = prepend + '<a'+target+' class="tweet_date" href="http://twitter.com/'+item.from_user+'/statuses/'+item.id+'" title="view tweet on twitter">'+relative_time(item.created_at)+'</a>';
 								break;
 							case 'from_user':
-								prepend = prepend + '<a class="tweet_from_user" href="http://twitter.com/'+item.from_user+'/statuses/'+item.id+'" title="view tweet on twitter">'+item.from_user+'</a>';
+								prepend = prepend + '<a'+target+' class="tweet_from_user" href="http://twitter.com/'+item.from_user+'/statuses/'+item.id+'" title="view tweet on twitter">'+item.from_user+'</a>';
 								break;
 						}						
 					});
