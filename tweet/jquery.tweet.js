@@ -16,34 +16,34 @@
 			auto_join_text_url: "i was looking at",	// [string]	auto tense for urls: "i was looking at" http:...
 			loading_text: null,						// [string]	optional loading text, displayed while tweets load
 			tag: null,								// [string]	optional hashtag
-			target: null,							// [string]	optional link target -- "blank"
+			target: null,							// [string]	optional link target -- "_blank"
 			query: null								// [string]	optional search query
 		};
 	
 		if(o) $.extend(s, o);
 	
 		$.fn.extend({
-			linkUrl: function() {
+			linkUrl: function(target) {
 				var returning = [];
 				var regexp = /((ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?)/gi;
 				this.each(function() {
-					returning.push(this.replace(regexp,"<a href=\"$1\">$1</a>"))
+					returning.push(this.replace(regexp,"<a "+target+" href=\"$1\">$1</a>"))
 				});
 				return $(returning);
 			},
-			linkUser: function() {
+			linkUser: function(target) {
 				var returning = [];
 				var regexp = /[\@]+([A-Za-z0-9-_]+)/gi;
 				this.each(function() {
-					returning.push(this.replace(regexp,"<a href=\"http://twitter.com/$1\">@$1</a>"))
+					returning.push(this.replace(regexp,"<a "+target+" href=\"http://twitter.com/$1\">@$1</a>"))
 				});
 				return $(returning);
 			},
-			linkHash: function() {
+			linkHash: function(target) {
 				var returning = [];
 				var regexp = / [\#]+([A-Za-z0-9-_]+)/gi;
 				this.each(function() {
-					returning.push(this.replace(regexp, ' <a href="http://search.twitter.com/search?q=&tag=$1&lang=all&from='+s.username.join("%2BOR%2B")+'">#$1</a>'))
+					returning.push(this.replace(regexp, ' <a '+target+' href="http://search.twitter.com/search?q=&tag=$1&lang=all&from='+s.username.join("%2BOR%2B")+'">#$1</a>'))
 				});
 				return $(returning);
 			},
@@ -104,18 +104,17 @@
 			}
 			var target = '';
 			if(s.target) {
-				target = ' target='+target;
+				target = ' target="'+s.target+'" ';
 			}
 			var query = '';
 			if(s.query) {
 				query += 'q='+s.query;
 			}
 			if(s.tag) {
-				query += 'tag='+s.tag;
+				query += 'tag='+s.tag.replace(/^#/, '');
 			}
 			query += '&q=from:'+s.username.join('%20OR%20from:');
 			var url = 'http://search.twitter.com/search.json?&'+query+'&rpp='+s.count+'&callback=?';
-			console.log(url);
 			if (s.loading_text) $(this).append(loading);
 			$.getJSON(url, function(data){
 				if (s.loading_text) loading.remove();
@@ -155,7 +154,7 @@
 						}						
 					});
 
-					var text = '<span class="tweet_text">' +$([item.text]).linkUrl().linkUser().linkHash().makeHeart().capAwesome().capEpic()[0]+ '</span>';
+					var text = '<span class="tweet_text">' +$([item.text]).linkUrl(target).linkUser(target).linkHash(target).makeHeart().capAwesome().capEpic()[0]+ '</span>';
 			
 					// until we create a template option, arrange the items below to alter a tweet's display.
 					list.append('<li>' + avatar + prepend + join + text + '</li>');
